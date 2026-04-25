@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>TNT Virtual - Panel de Control</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; }
+        .container { max-width: 800px; margin: auto; }
+        .card { background: #2a2a2a; padding: 20px; border-radius: 10px; margin: 10px; }
+        #mapa { height: 300px; background: #000; border: 2px solid #ffcc00; display: flex; align-items: center; justify-content: center; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; border-bottom: 1px solid #444; }
+        .status-online { color: #00ff00; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚛 TNT VIRTUAL DASHBOARD</h1>
+        
+        <div class="card">
+            <h3>📍 Localización en Tiempo Real</h3>
+            <div id="mapa">Cargando telemetría...</div>
+        </div>
+
+        <div class="card">
+            <h3>🏆 Ranking de Conductores</h3>
+            <table id="ranking">
+                <thead>
+                    <tr><th>Conductor</th><th>KM Totales</th><th>Estado</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN (Aquí pondrás tus llaves de Supabase)
+        const SB_URL = "https://eovhixvtkwrzibmtihbk.supabase.co";
+        const SB_KEY = "sb_publishable_jsfoO6QSEkB-59HmvIpIDw_Ltnhjzur";
+        const supabase = supabase.createClient(SB_URL, SB_KEY);
+
+        async function cargarDatos() {
+            // 1. Cargar Ranking
+            const { data: profiles } = await supabase.from('profiles').select('*').order('total_km', { ascending: false });
+            const tabla = document.querySelector("#ranking tbody");
+            tabla.innerHTML = profiles.map(p => `
+                <tr>
+                    <td>${p.username}</td>
+                    <td>${p.total_km} km</td>
+                    <td class="status-online">${p.current_status}</td>
+                </tr>
+            `).join('');
+
+            // 2. Cargar Posición (Simplificado para el ejemplo)
+            const { data: live } = await supabase.from('live_tracking').select('*');
+            if(live.length > 0) {
+                document.getElementById("mapa").innerHTML = `Conductor en X: ${live[0].pos_x} | Z: ${live[0].pos_z}`;
+            }
+        }
+
+        setInterval(cargarDatos, 5000);
+        cargarDatos();
+    </script>
+</body>
+</html>
