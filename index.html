@@ -2,65 +2,131 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>TNT Virtual - Panel de Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TNT VIRTUAL ESPAÑA - Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; }
-        .container { max-width: 800px; margin: auto; }
-        .card { background: #2a2a2a; padding: 20px; border-radius: 10px; margin: 10px; }
-        #mapa { height: 300px; background: #000; border: 2px solid #ffcc00; display: flex; align-items: center; justify-content: center; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 10px; border-bottom: 1px solid #444; }
-        .status-online { color: #00ff00; }
+        :root { --orange: #ff4500; --bg: #121214; --card: #1c1c1e; --text: #e1e1e6; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; }
+        
+        /* Menú Lateral */
+        nav { width: 240px; background: var(--card); height: 100vh; border-right: 1px solid #333; padding: 20px; position: fixed; }
+        .logo { color: var(--orange); font-weight: bold; font-size: 20px; margin-bottom: 40px; display: flex; align-items: center; }
+        .nav-item { padding: 15px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; color: #a8a8b3; }
+        .nav-item:hover, .active { background: var(--orange); color: white; }
+        .nav-item i { margin-right: 15px; }
+
+        /* Contenido Principal */
+        main { margin-left: 280px; padding: 40px; width: 100%; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 30px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+
+        /* Tarjetas */
+        .card { background: var(--card); border-radius: 12px; padding: 20px; border: 1px solid #29292e; position: relative; overflow: hidden; }
+        .card h3 { margin-top: 0; font-size: 14px; color: #a8a8b3; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-action { background: var(--orange); border: none; color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        
+        /* Mapa y Tabla */
+        #mapa { height: 200px; background: #000 url('https://i.imgur.com/your-map-placeholder.png'); border-radius: 8px; border: 1px solid #333; display: flex; align-items: center; justify-content: center; }
+        table { width: 100%; margin-top: 15px; border-collapse: collapse; }
+        th { text-align: left; color: #7c7c8a; font-size: 12px; padding-bottom: 10px; }
+        td { padding: 12px 0; border-top: 1px solid #29292e; }
+        .status { padding: 4px 8px; border-radius: 4px; font-size: 11px; background: rgba(0, 255, 0, 0.1); color: #00ff00; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚛 TNT VIRTUAL DASHBOARD</h1>
-        
-        <div class="card">
-            <h3>📍 Localización en Tiempo Real</h3>
-            <div id="mapa">Cargando telemetría...</div>
+
+    <nav>
+        <div class="logo"><i class="fas fa-truck-moving"></i> &nbsp; TNT VIRTUAL</div>
+        <div class="nav-item active"><i class="fas fa-home"></i> Dashboard</div>
+        <div class="nav-item"><i class="fas fa-route"></i> Mis Rutas</div>
+        <div class="nav-item"><i class="fas fa-chart-bar"></i> Estadísticas</div>
+        <div class="nav-item"><i class="fas fa-user"></i> Perfil</div>
+        <div style="position: absolute; bottom: 40px;" class="nav-item"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</div>
+    </nav>
+
+    <main>
+        <div class="header">
+            <h2>Bienvenido, Conductor</h2>
+            <div id="reloj" style="color: var(--orange); font-weight: bold;">00:00:00</div>
         </div>
 
-        <div class="card">
-            <h3>🏆 Ranking de Conductores</h3>
-            <table id="ranking">
-                <thead>
-                    <tr><th>Conductor</th><th>KM Totales</th><th>Estado</th></tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+        <div class="grid">
+            <div style="grid-column: span 2;">
+                <div class="card" style="margin-bottom: 20px;">
+                    <button class="btn-action" style="width: auto; background: #cc3300;">Generar Ruta Automática</button>
+                    <h3>Rutas Pendientes</h3>
+                    <div style="display: flex; gap: 20px;">
+                        <div style="flex: 1;">
+                            <p><small>Ruta de ida</small><br><b>Barcelona</b> → <b>Lyon</b></p>
+                        </div>
+                        <div style="flex: 1;">
+                            <p><small>Ruta de vuelta</small><br><b>Lyon</b> → <b>Barcelona</b></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📍 Localización en Tiempo Real</h3>
+                    <div id="mapa">
+                        <div id="pos-info">Esperando señal de GPS...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3>Estado del Viaje</h3>
+                    <h1 style="margin: 10px 0;">58% <small style="font-size: 12px; color: #7c7c8a;">Completado</small></h1>
+                    <progress value="58" max="100" style="width: 100%; accent-color: var(--orange);"></progress>
+                </div>
+
+                <div class="card">
+                    <h3>🏆 Ranking Conductores</h3>
+                    <table id="ranking">
+                        <thead><tr><th>CONDUCTOR</th><th>KM</th><th>ESTADO</th></tr></thead>
+                        <tbody>
+                            <tr><td>Cargando...</td><td>-</td><td>-</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-    </div>
+    </main>
 
     <script>
-        // CONFIGURACIÓN (Aquí pondrás tus llaves de Supabase)
+        // ¡RECUERDA PONER TUS LLAVES AQUÍ!
         const SB_URL = "https://eovhixvtkwrzibmtihbk.supabase.co";
         const SB_KEY = "sb_publishable_jsfoO6QSEkB-59HmvIpIDw_Ltnhjzur";
-        const supabase = supabase.createClient(SB_URL, SB_KEY);
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-        async function cargarDatos() {
-            // 1. Cargar Ranking
-            const { data: profiles } = await supabase.from('profiles').select('*').order('total_km', { ascending: false });
-            const tabla = document.querySelector("#ranking tbody");
-            tabla.innerHTML = profiles.map(p => `
-                <tr>
-                    <td>${p.username}</td>
-                    <td>${p.total_km} km</td>
-                    <td class="status-online">${p.current_status}</td>
-                </tr>
-            `).join('');
+        async function updateData() {
+            // Ranking
+            const { data: profiles } = await supabaseClient.from('profiles').select('*').order('total_km', { ascending: false });
+            if (profiles) {
+                const tbody = document.querySelector("#ranking tbody");
+                tbody.innerHTML = profiles.map(p => `
+                    <tr>
+                        <td>${p.username}</td>
+                        <td>${p.total_km}</td>
+                        <td><span class="status">${p.current_status}</span></td>
+                    </tr>
+                `).join('');
+            }
 
-            // 2. Cargar Posición (Simplificado para el ejemplo)
-            const { data: live } = await supabase.from('live_tracking').select('*');
-            if(live.length > 0) {
-                document.getElementById("mapa").innerHTML = `Conductor en X: ${live[0].pos_x} | Z: ${live[0].pos_z}`;
+            // GPS
+            const { data: gps } = await supabaseClient.from('live_tracking').select('*').limit(1);
+            if (gps && gps[0]) {
+                document.getElementById("pos-info").innerHTML = `<b>CAMIÓN:</b> ${gps[0].truck_model} <br> <b>VELOCIDAD:</b> ${gps[0].speed} km/h`;
             }
         }
 
-        setInterval(cargarDatos, 5000);
-        cargarDatos();
+        setInterval(() => {
+            document.getElementById('reloj').innerText = new Date().toLocaleTimeString();
+            updateData();
+        }, 5000);
+        updateData();
     </script>
 </body>
 </html>
